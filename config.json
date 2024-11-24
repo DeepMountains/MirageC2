@@ -1,0 +1,8 @@
+{
+  "checkInterval": 2,
+  "bannerAuth": "Powered By Mirage",
+  "switchKeyUri": "/Mirage",
+  "heartbeatUri": "/feelgood",
+  "resultUri": "/wowResult"
+}
+
