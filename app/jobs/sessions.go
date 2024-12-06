@@ -8,7 +8,7 @@ import (
 func ShowSessions() {
 	for _, session := range common.Jobs {
 		if session.Health == true {
-			fmt.Printf("[*] Job ID: \"%d\", Client IP: \"%s\", Shell User: \"%s\", Platform: \"%s\", ProcessName: \"%s\"\n", session.ID, session.ClientIP, session.User, session.Platform, session.Processname)
+			fmt.Printf("[*] Job ID: \"%d\", Client IP: \"%s\", Shell User: \"%s\", Platform: \"%s\"\n", session.ID, session.ClientIP, session.User, session.Platform)
 		}
 	}
 }
@@ -28,6 +28,6 @@ func ShowTasksPool(intID int) {
 		return
 	}
 	for id, task := range tasks {
-		fmt.Printf("[*] Task ID: %d, Task Command: %s\n", id+1, task)
+		fmt.Printf("[*] Task ID: %d, Task Command: %s\n", id, task)
 	}
 }

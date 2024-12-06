@@ -1,7 +1,7 @@
 package initbase
 
 import (
-	"MirageC2_V1.0/app/inputbase"
+	inputbase2 "MirageC2_V1.0/public/initbase/inputbase"
 	"fmt"
 	"github.com/chzyer/readline"
 	"os"
@@ -43,17 +43,17 @@ func handleCommand(input string) {
 		fmt.Println("[*] 退出控制台")
 		os.Exit(0)
 	case "help":
-		inputbase.PrintHelp()
+		inputbase2.PrintHelp()
 	case "listen", "l":
-		inputbase.Listen(parts)
+		inputbase2.Listen(parts)
 	case "show":
-		inputbase.Show(parts)
+		inputbase2.Show(parts)
 	case "create":
-		inputbase.Create(parts)
+		inputbase2.Create(parts)
 	case "session", "s":
-		inputbase.Sessions(parts)
+		inputbase2.Sessions(parts)
 	case "kill":
-		inputbase.Kill(parts)
+		inputbase2.Kill(parts)
 	default:
 		fmt.Println("[-] 未知命令。输入 'help' 查看可用命令。")
 	}

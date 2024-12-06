@@ -17,6 +17,8 @@ type Config struct {
 
 var MConfig Config
 
+var C2Platform string
+
 // 读取并解析配置文件
 func LoadConfig() {
 	data, err := ioutil.ReadFile("config.json")
